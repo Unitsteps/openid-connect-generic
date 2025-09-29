@@ -665,6 +665,9 @@ class OpenID_Connect_Generic_Client_Wrapper {
 		// Allow plugins / themes to take action using current claims on existing user (e.g. update role).
 		do_action( 'openid-connect-generic-update-user-using-current-claim', $user, $user_claim );
 
+		// Update user role based on current Keycloak client roles.
+		$this->assign_user_role_from_claim( $user, $user_claim );
+
 		// Determine the amount of days before the cookie expires.
 		$remember_me = apply_filters( 'openid-connect-generic-remember-me', false, $user, $token_response, $id_token_claim, $user_claim, $subject_identity );
 		$wp_expiration_days = $remember_me ? 14 : 2;
@@ -1106,6 +1109,9 @@ class OpenID_Connect_Generic_Client_Wrapper {
 		// Allow plugins / themes to take action on new user creation.
 		do_action( 'openid-connect-generic-user-create', $user, $user_claim );
 
+		// Assign role based on Keycloak client roles.
+		$this->assign_user_role_from_claim( $user, $user_claim );
+
 		return $user;
 	}
 
@@ -1126,5 +1132,80 @@ class OpenID_Connect_Generic_Client_Wrapper {
 
 		// Return our updated user.
 		return get_user_by( 'id', $uid );
+	}
+
+	/**
+	 * Assign WordPress user role based on Keycloak client roles from token claims.
+	 *
+	 * @param WP_User $user       The WordPress user object.
+	 * @param array   $user_claim The user claim array from the IDP.
+	 *
+	 * @return void
+	 */
+	private function assign_user_role_from_claim( $user, $user_claim ) {
+		// Get role mapping settings.
+		$role_mappings = array(
+			'administrator' => $this->settings->role_mapping_administrator,
+			'editor'        => $this->settings->role_mapping_editor,
+			'author'        => $this->settings->role_mapping_author,
+			'contributor'   => $this->settings->role_mapping_contributor,
+			'subscriber'    => $this->settings->role_mapping_subscriber,
+		);
+
+		// Extract client roles from the token.
+		$client_roles = $this->extract_client_roles_from_claim( $user_claim );
+
+		if ( empty( $client_roles ) ) {
+			$this->logger->log( "No client roles found in user claim for user: {$user->user_login}", __METHOD__ );
+			return;
+		}
+
+		// Find the highest priority role that matches.
+		$role_priority = array( 'administrator', 'editor', 'author', 'contributor', 'subscriber' );
+		
+		foreach ( $role_priority as $wp_role ) {
+			$keycloak_role = $role_mappings[ $wp_role ];
+			
+			if ( ! empty( $keycloak_role ) && in_array( $keycloak_role, $client_roles, true ) ) {
+				// Assign this role to the user.
+				$user->set_role( $wp_role );
+				$this->logger->log( "Assigned role '{$wp_role}' to user: {$user->user_login} based on Keycloak role: {$keycloak_role}", __METHOD__ );
+				return;
+			}
+		}
+
+		$this->logger->log( "No matching role found for user: {$user->user_login}. Available client roles: " . implode( ', ', $client_roles ), __METHOD__ );
+	}
+
+	/**
+	 * Extract client roles from the user claim.
+	 *
+	 * @param array $user_claim The user claim array from the IDP.
+	 *
+	 * @return array Array of client role names.
+	 */
+	private function extract_client_roles_from_claim( $user_claim ) {
+		$client_roles = array();
+
+		// Try to extract roles from resource_access (common in Keycloak).
+		if ( isset( $user_claim['resource_access'] ) && is_array( $user_claim['resource_access'] ) ) {
+			foreach ( $user_claim['resource_access'] as $client_id => $client_data ) {
+				if ( isset( $client_data['roles'] ) && is_array( $client_data['roles'] ) ) {
+					$client_roles = array_merge( $client_roles, $client_data['roles'] );
+				}
+			}
+		}
+
+		// Also try realm_access for realm roles (fallback).
+		if ( empty( $client_roles ) && isset( $user_claim['realm_access']['roles'] ) && is_array( $user_claim['realm_access']['roles'] ) ) {
+			$client_roles = $user_claim['realm_access']['roles'];
+		}
+
+		// Try a direct 'roles' field (generic fallback).
+		if ( empty( $client_roles ) && isset( $user_claim['roles'] ) && is_array( $user_claim['roles'] ) ) {
+			$client_roles = $user_claim['roles'];
+		}
+
+		return array_unique( $client_roles );
 	}
 }

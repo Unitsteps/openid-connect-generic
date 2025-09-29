@@ -396,6 +396,13 @@ class OpenID_Connect_Generic {
 				'redirect_on_logout'       => defined( 'OIDC_REDIRECT_ON_LOGOUT' ) ? intval( OIDC_REDIRECT_ON_LOGOUT ) : 1,
 				'enable_logging'           => defined( 'OIDC_ENABLE_LOGGING' ) ? intval( OIDC_ENABLE_LOGGING ) : 0,
 				'log_limit'                => defined( 'OIDC_LOG_LIMIT' ) ? intval( OIDC_LOG_LIMIT ) : 1000,
+
+				// Role mapping settings.
+				'role_mapping_administrator' => '',
+				'role_mapping_editor'        => '',
+				'role_mapping_author'        => '',
+				'role_mapping_contributor'   => '',
+				'role_mapping_subscriber'    => '',
 			)
 		);
 

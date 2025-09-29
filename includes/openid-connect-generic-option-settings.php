@@ -57,6 +57,14 @@
  * @property bool $redirect_on_logout       The flag to indicate whether to redirect to the login screen on session expiration.
  * @property bool $enable_logging           The flag to enable/disable logging.
  * @property int  $log_limit                The maximum number of log entries to keep.
+ *
+ * Role Mapping Settings:
+ *
+ * @property string $role_mapping_administrator The Keycloak client role name for WordPress Administrator role.
+ * @property string $role_mapping_editor        The Keycloak client role name for WordPress Editor role.
+ * @property string $role_mapping_author        The Keycloak client role name for WordPress Author role.
+ * @property string $role_mapping_contributor   The Keycloak client role name for WordPress Contributor role.
+ * @property string $role_mapping_subscriber    The Keycloak client role name for WordPress Subscriber role.
  */
 class OpenID_Connect_Generic_Option_Settings {
 
