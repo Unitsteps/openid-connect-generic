@@ -150,6 +150,13 @@ class OpenID_Connect_Generic_Settings_Page {
 		);
 
 		add_settings_section(
+			'role_mapping_settings',
+			__( 'Role Mapping Settings', 'daggerhart-openid-connect-generic' ),
+			array( $this, 'role_mapping_settings_description' ),
+			$this->options_page_name
+		);
+
+		add_settings_section(
 			'log_settings',
 			__( 'Log Settings', 'daggerhart-openid-connect-generic' ),
 			array( $this, 'log_settings_description' ),
@@ -396,6 +403,36 @@ class OpenID_Connect_Generic_Settings_Page {
 				'disabled'    => defined( 'OIDC_LOG_LIMIT' ),
 				'section'     => 'log_settings',
 			),
+			'role_mapping_administrator' => array(
+				'title'       => __( 'Administrator Role', 'daggerhart-openid-connect-generic' ),
+				'description' => __( 'Keycloak client role name for WordPress Administrator role.', 'daggerhart-openid-connect-generic' ),
+				'type'        => 'text',
+				'section'     => 'role_mapping_settings',
+			),
+			'role_mapping_editor' => array(
+				'title'       => __( 'Editor Role', 'daggerhart-openid-connect-generic' ),
+				'description' => __( 'Keycloak client role name for WordPress Editor role.', 'daggerhart-openid-connect-generic' ),
+				'type'        => 'text',
+				'section'     => 'role_mapping_settings',
+			),
+			'role_mapping_author' => array(
+				'title'       => __( 'Author Role', 'daggerhart-openid-connect-generic' ),
+				'description' => __( 'Keycloak client role name for WordPress Author role.', 'daggerhart-openid-connect-generic' ),
+				'type'        => 'text',
+				'section'     => 'role_mapping_settings',
+			),
+			'role_mapping_contributor' => array(
+				'title'       => __( 'Contributor Role', 'daggerhart-openid-connect-generic' ),
+				'description' => __( 'Keycloak client role name for WordPress Contributor role.', 'daggerhart-openid-connect-generic' ),
+				'type'        => 'text',
+				'section'     => 'role_mapping_settings',
+			),
+			'role_mapping_subscriber' => array(
+				'title'       => __( 'Subscriber Role', 'daggerhart-openid-connect-generic' ),
+				'description' => __( 'Keycloak client role name for WordPress Subscriber role.', 'daggerhart-openid-connect-generic' ),
+				'type'        => 'text',
+				'section'     => 'role_mapping_settings',
+			),
 		);
 
 		return apply_filters( 'openid-connect-generic-settings-fields', $fields );
@@ -590,6 +627,15 @@ class OpenID_Connect_Generic_Settings_Page {
 	 */
 	public function authorization_settings_description() {
 		esc_html_e( 'Control the authorization mechanics of the site.', 'daggerhart-openid-connect-generic' );
+	}
+
+	/**
+	 * Output the 'Role Mapping Settings' plugin setting section description.
+	 *
+	 * @return void
+	 */
+	public function role_mapping_settings_description() {
+		esc_html_e( 'Map Keycloak client roles to WordPress user roles. Enter the Keycloak client role names for each WordPress role.', 'daggerhart-openid-connect-generic' );
 	}
 
 	/**
